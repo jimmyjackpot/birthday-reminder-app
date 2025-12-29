@@ -19,15 +19,14 @@ class AnalyticsService {
   void logScreenView(String screenName) {
     if (!_isEnabled) return;
     debugPrint('📊 Screen View: $screenName');
-    // TODO: Integrate with analytics provider
     // Example: FirebaseAnalytics.instance.logScreenView(screenName: screenName);
   }
 
   /// Log a user action/event
   void logEvent(String eventName, [Map<String, dynamic>? parameters]) {
     if (!_isEnabled) return;
-    debugPrint('📊 Event: $eventName ${parameters != null ? 'with params: $parameters' : ''}');
-    // TODO: Integrate with analytics provider
+    debugPrint(
+        '📊 Event: $eventName ${parameters != null ? 'with params: $parameters' : ''}');
     // Example: FirebaseAnalytics.instance.logEvent(
     //   name: eventName,
     //   parameters: parameters,
@@ -105,8 +104,6 @@ class AnalyticsService {
   void setUserProperty(String name, String value) {
     if (!_isEnabled) return;
     debugPrint('📊 User Property: $name = $value');
-    // TODO: Integrate with analytics provider
     // Example: FirebaseAnalytics.instance.setUserProperty(name: name, value: value);
   }
 }
-

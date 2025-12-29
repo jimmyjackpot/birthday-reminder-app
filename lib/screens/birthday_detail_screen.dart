@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'dart:io';
 import '../models/birthday.dart';
 import '../providers/birthday_provider.dart';
 import '../widgets/wish_dialog.dart';
@@ -33,11 +34,13 @@ class BirthdayDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (contact.phones.isNotEmpty) ...[
-              Text('Phone: ${contact.phones.first.number}', style: AppTheme.bodyMedium(isDark)),
+              Text('Phone: ${contact.phones.first.number}',
+                  style: AppTheme.bodyMedium(isDark)),
               const SizedBox(height: AppTheme.spacingSM),
             ],
             if (contact.emails.isNotEmpty) ...[
-              Text('Email: ${contact.emails.first.address}', style: AppTheme.bodyMedium(isDark)),
+              Text('Email: ${contact.emails.first.address}',
+                  style: AppTheme.bodyMedium(isDark)),
               const SizedBox(height: AppTheme.spacingSM),
             ],
             Text(
@@ -58,15 +61,16 @@ class BirthdayDetailScreen extends StatelessWidget {
 
   Future<void> _openContact(BuildContext context, String contactId) async {
     try {
-      final hasPermission = await PermissionService.requestContactsPermission(context);
+      final hasPermission =
+          await PermissionService.requestContactsPermission(context);
       if (!hasPermission) {
         if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Contacts permission is required to open contact'),
-                backgroundColor: AppTheme.warningColor,
-              ),
-            );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Contacts permission is required to open contact'),
+              backgroundColor: AppTheme.warningColor,
+            ),
+          );
         }
         return;
       }
@@ -74,12 +78,12 @@ class BirthdayDetailScreen extends StatelessWidget {
       final granted = await FlutterContacts.requestPermission();
       if (!granted) {
         if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Contacts permission denied'),
-                backgroundColor: AppTheme.errorColor,
-              ),
-            );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Contacts permission denied'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
         }
         return;
       }
@@ -113,7 +117,7 @@ class BirthdayDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<BirthdayProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(isDark),
       body: Container(
@@ -187,11 +191,16 @@ class BirthdayDetailScreen extends StatelessWidget {
                                 offset: const Offset(0, -60),
                                 child: CircleAvatar(
                                   radius: 60,
-                                  backgroundColor: AppTheme.getSurfaceColor(isDark),
+                                  backgroundColor:
+                                      AppTheme.getSurfaceColor(isDark),
                                   child: CircleAvatar(
                                     radius: 56,
                                     backgroundImage: birthday.photo != null
-                                        ? CachedNetworkImageProvider(birthday.photo!)
+                                        ? (birthday.photo!.startsWith('http')
+                                            ? CachedNetworkImageProvider(
+                                                    birthday.photo!)
+                                                as ImageProvider
+                                            : FileImage(File(birthday.photo!)))
                                         : null,
                                     child: birthday.photo == null
                                         ? Text(
@@ -200,8 +209,16 @@ class BirthdayDetailScreen extends StatelessWidget {
                                                 .map((n) => n[0])
                                                 .join('')
                                                 .toUpperCase()
-                                                .substring(0, birthday.name.split(' ').length > 1 ? 2 : 1),
-                                            style: AppTheme.heading2(isDark).copyWith(
+                                                .substring(
+                                                    0,
+                                                    birthday.name
+                                                                .split(' ')
+                                                                .length >
+                                                            1
+                                                        ? 2
+                                                        : 1),
+                                            style: AppTheme.heading2(isDark)
+                                                .copyWith(
                                               color: AppTheme.primaryColor,
                                             ),
                                           )
@@ -274,10 +291,12 @@ class BirthdayDetailScreen extends StatelessWidget {
                                       Icons.open_in_new,
                                       color: AppTheme.primaryColor,
                                     ),
-                                    onPressed: () => _openContact(context, birthday.contactId!),
+                                    onPressed: () => _openContact(
+                                        context, birthday.contactId!),
                                   ),
                                 ),
-                                Divider(color: AppTheme.getDividerColor(isDark)),
+                                Divider(
+                                    color: AppTheme.getDividerColor(isDark)),
                               ],
                               _buildDetailRow(
                                 'Reminder',
@@ -303,7 +322,8 @@ class BirthdayDetailScreen extends StatelessWidget {
                                   onPressed: () {
                                     showDialog(
                                       context: context,
-                                      builder: (context) => WishDialog(birthday: birthday),
+                                      builder: (context) =>
+                                          WishDialog(birthday: birthday),
                                     );
                                   },
                                   icon: const Icon(Icons.message),
@@ -311,9 +331,11 @@ class BirthdayDetailScreen extends StatelessWidget {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.primaryColor,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: AppTheme.spacingMD),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                                      borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusMedium),
                                     ),
                                   ),
                                 ),
@@ -324,18 +346,22 @@ class BirthdayDetailScreen extends StatelessWidget {
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       onPressed: () {
-                                        final message = '${birthday.name}\'s birthday is on ${_getMonthName(birthday.birthdate.month)} ${birthday.birthdate.day}! 🎉\n\n${birthday.daysUntil == 0 ? "Today is their birthday!" : birthday.daysUntil == 1 ? "Tomorrow!" : "In ${birthday.daysUntil} days!"}';
+                                        final message =
+                                            '${birthday.name}\'s birthday is on ${_getMonthName(birthday.birthdate.month)} ${birthday.birthdate.day}! 🎉\n\n${birthday.daysUntil == 0 ? "Today is their birthday!" : birthday.daysUntil == 1 ? "Tomorrow!" : "In ${birthday.daysUntil} days!"}';
                                         Share.share(
                                           message,
-                                          subject: '${birthday.name}\'s Birthday',
+                                          subject:
+                                              '${birthday.name}\'s Birthday',
                                         );
                                       },
                                       icon: const Icon(Icons.share),
                                       label: const Text('Share'),
                                       style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: AppTheme.spacingMD),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                                          borderRadius: BorderRadius.circular(
+                                              AppTheme.radiusMedium),
                                         ),
                                       ),
                                     ),
@@ -348,16 +374,19 @@ class BirthdayDetailScreen extends StatelessWidget {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                BirthdayFormScreen(birthday: birthday),
+                                                BirthdayFormScreen(
+                                                    birthday: birthday),
                                           ),
                                         );
                                       },
                                       icon: const Icon(Icons.edit),
                                       label: const Text('Edit'),
                                       style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: AppTheme.spacingMD),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                                          borderRadius: BorderRadius.circular(
+                                              AppTheme.radiusMedium),
                                         ),
                                       ),
                                     ),
@@ -375,11 +404,14 @@ class BirthdayDetailScreen extends StatelessWidget {
                                   label: const Text('Delete Birthday'),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppTheme.errorColor,
-                                    padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: AppTheme.spacingMD),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                                      borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusMedium),
                                     ),
-                                    side: const BorderSide(color: AppTheme.errorColor),
+                                    side: const BorderSide(
+                                        color: AppTheme.errorColor),
                                   ),
                                 ),
                               ),
@@ -398,7 +430,8 @@ class BirthdayDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(IconData icon, String label, String value, Color color, bool isDark) {
+  Widget _buildInfoCard(
+      IconData icon, String label, String value, Color color, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingMD),
       decoration: BoxDecoration(
@@ -423,7 +456,8 @@ class BirthdayDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, bool isDark, {Widget? trailing}) {
+  Widget _buildDetailRow(String label, String value, bool isDark,
+      {Widget? trailing}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingSM),
       child: Row(
@@ -453,8 +487,18 @@ class BirthdayDetailScreen extends StatelessWidget {
 
   String _getMonthName(int month) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return months[month - 1];
   }
@@ -482,7 +526,8 @@ class BirthdayDetailScreen extends StatelessWidget {
             },
             child: Text(
               'Delete',
-              style: AppTheme.labelLarge(isDark).copyWith(color: AppTheme.errorColor),
+              style: AppTheme.labelLarge(isDark)
+                  .copyWith(color: AppTheme.errorColor),
             ),
           ),
         ],
@@ -490,4 +535,3 @@ class BirthdayDetailScreen extends StatelessWidget {
     );
   }
 }
-

@@ -15,19 +15,20 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final appProvider = Provider.of<AppProvider>(context);
     final birthdayProvider = Provider.of<BirthdayProvider>(context);
-    
+
     final user = {
       'name': 'User',
       'photo': null,
     };
 
     final totalBirthdays = birthdayProvider.birthdays.length;
-    final upcomingCount = birthdayProvider.getUpcomingBirthdays()
+    final upcomingCount = birthdayProvider
+        .getUpcomingBirthdays()
         .where((b) => b.daysUntil <= 30)
         .length;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(isDark),
       body: SafeArea(
@@ -65,7 +66,8 @@ class ProfileScreen extends StatelessWidget {
                             children: [
                               CircleAvatar(
                                 radius: 40,
-                                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                backgroundColor: AppTheme.primaryColor
+                                    .withValues(alpha: 0.1),
                                 child: Text(
                                   user['name']!
                                       .split(' ')
@@ -149,7 +151,8 @@ class ProfileScreen extends StatelessWidget {
                             'Notifications',
                             'Birthday reminders',
                             appProvider.notificationsEnabled,
-                            (value) => appProvider.setNotificationsEnabled(value),
+                            (value) =>
+                                appProvider.setNotificationsEnabled(value),
                             isDark,
                           ),
                           Divider(
@@ -157,7 +160,9 @@ class ProfileScreen extends StatelessWidget {
                             color: AppTheme.getDividerColor(isDark),
                           ),
                           _buildSettingTile(
-                            appProvider.darkMode ? Icons.dark_mode : Icons.light_mode,
+                            appProvider.darkMode
+                                ? Icons.dark_mode
+                                : Icons.light_mode,
                             'Dark Mode',
                             'Change theme appearance',
                             appProvider.darkMode,
@@ -181,7 +186,8 @@ class ProfileScreen extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const StatisticsScreen(),
+                                  builder: (context) =>
+                                      const StatisticsScreen(),
                                 ),
                               );
                             },
@@ -222,7 +228,8 @@ class ProfileScreen extends StatelessWidget {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Birthdays exported successfully!'),
+                                      content: Text(
+                                          'Birthdays exported successfully!'),
                                       backgroundColor: AppTheme.successColor,
                                     ),
                                   );
@@ -275,7 +282,8 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         Text(
                           '•',
-                          style: TextStyle(color: AppTheme.getTextTertiaryColor(isDark)),
+                          style: TextStyle(
+                              color: AppTheme.getTextTertiaryColor(isDark)),
                         ),
                         TextButton(
                           onPressed: () {},
@@ -396,4 +404,3 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
-

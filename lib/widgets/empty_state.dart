@@ -20,7 +20,7 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final iconColor = isDark ? AppTheme.textTertiaryDark : AppTheme.textTertiary;
+    final iconColor = AppTheme.onSurfaceDisabled(isDark);
 
     return Center(
       child: Padding(
@@ -45,7 +45,7 @@ class EmptyState extends StatelessWidget {
             Text(
               title,
               style: AppTheme.heading3(isDark).copyWith(
-                color: isDark ? AppTheme.textPrimaryDark : AppTheme.textSecondary,
+                color: isDark ? AppTheme.onSurface(true) : AppTheme.onSurfaceVariant(false),
               ),
               textAlign: TextAlign.center,
             ),
@@ -53,7 +53,7 @@ class EmptyState extends StatelessWidget {
             Text(
               message,
               style: AppTheme.bodyMedium(isDark).copyWith(
-                color: isDark ? AppTheme.textTertiaryDark : AppTheme.textTertiary,
+                color: AppTheme.onSurfaceDisabled(isDark),
               ),
               textAlign: TextAlign.center,
             ),

@@ -68,7 +68,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.backgroundDark : AppTheme.backgroundLight,
+      backgroundColor: AppTheme.surfaceContainer(isDark),
       body: SafeArea(
         child: Column(
           children: [
@@ -82,7 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: Text(
                     'Skip',
                     style: AppTheme.labelLarge(isDark).copyWith(
-                      color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+                      color: AppTheme.onSurfaceVariant(isDark),
                     ),
                   ),
                 ),
@@ -120,7 +120,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     borderRadius: BorderRadius.circular(4),
                     color: _currentPage == index
                         ? AppTheme.primaryColor
-                        : (isDark ? AppTheme.textTertiaryDark : AppTheme.textTertiary),
+                        : AppTheme.onSurfaceDisabled(isDark),
                   ),
                 ),
               ),

@@ -41,11 +41,11 @@ class _LoadingShimmerState extends State<LoadingShimmer>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = isDark
-        ? AppTheme.surfaceDark.withValues(alpha: 0.5)
-        : AppTheme.getBorderColor(isDark);
+        ? AppTheme.surface(true).withValues(alpha: 0.5)
+        : AppTheme.outline(isDark);
     final highlightColor = isDark
-        ? AppTheme.surfaceElevatedDark.withValues(alpha: 0.8)
-        : AppTheme.getSurfaceColor(isDark);
+        ? AppTheme.surfaceElevated(true).withValues(alpha: 0.8)
+        : AppTheme.surface(isDark);
 
     return AnimatedBuilder(
       animation: _controller,

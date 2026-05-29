@@ -21,10 +21,10 @@ import 'widgets/bottom_nav.dart' as bottom_nav;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.initialize();
-  
+
   // Initialize analytics
   AnalyticsService().logAppOpened();
-  
+
   // Request notification permission on app start
   // This will be handled in the permissions screen, but we initialize here
   runApp(const MyApp());
@@ -43,7 +43,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     // Listen to brightness changes
-    WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
+    WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged =
+        () {
       _updateThemeFromSystem();
     };
   }
@@ -71,19 +72,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           // Update theme from system if enabled
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (appProvider.useSystemTheme) {
-              final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+              final brightness =
+                  WidgetsBinding.instance.platformDispatcher.platformBrightness;
               appProvider.updateThemeFromSystem(brightness);
             }
           });
-          
+
           // Set up brightness change listener
-          WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
+          WidgetsBinding
+              .instance.platformDispatcher.onPlatformBrightnessChanged = () {
             if (appProvider.useSystemTheme) {
-              final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+              final brightness =
+                  WidgetsBinding.instance.platformDispatcher.platformBrightness;
               appProvider.updateThemeFromSystem(brightness);
             }
           };
-          
+
           return MaterialApp(
             title: 'Birthday Reminder',
             debugShowCheckedModeBanner: false,
@@ -185,7 +189,7 @@ class MainScreen extends StatelessWidget {
       builder: (context, appProvider, birthdayProvider, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return Scaffold(
-          backgroundColor: AppTheme.getBackgroundColor(isDark),
+          backgroundColor: AppTheme.surfaceContainer(isDark),
           body: Stack(
             children: [
               // Main Content
@@ -219,15 +223,6 @@ class MainScreen extends StatelessWidget {
                       tabName = 'profile';
                     }
                     AnalyticsService().logButtonClick('tab_$tabName');
-                  },
-                  onAddClick: () {
-                    AnalyticsService().logButtonClick('add_birthday', screen: 'main');
-                    Navigator.push(
-                      context,
-                      AppAnimations.slideRoute(
-                        const BirthdayFormScreen(),
-                      ),
-                    );
                   },
                 ),
               ),
@@ -274,4 +269,3 @@ class MainScreen extends StatelessWidget {
     }
   }
 }
-

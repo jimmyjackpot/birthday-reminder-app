@@ -48,7 +48,7 @@ class OnboardingPage extends StatelessWidget {
           Text(
             description,
             style: AppTheme.bodyLarge(isDark).copyWith(
-              color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+              color: AppTheme.onSurfaceVariant(isDark),
             ),
             textAlign: TextAlign.center,
           ),

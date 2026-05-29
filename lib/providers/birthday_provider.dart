@@ -29,23 +29,22 @@ class BirthdayProvider with ChangeNotifier {
 
     try {
       final loaded = await _storageService.loadBirthdays();
-      
+
       // Handle empty state gracefully - no mock data
       _birthdays = loaded.map((b) {
         // Use cache if available, otherwise calculate
         final cacheKey = b.birthdate.toIso8601String();
-        final daysUntil = _daysUntilCache[cacheKey] ?? 
+        final daysUntil = _daysUntilCache[cacheKey] ??
             Birthday.calculateDaysUntil(b.birthdate);
-        final age = _ageCache[cacheKey] ?? 
-            Birthday.calculateAge(b.birthdate);
-        
+        final age = _ageCache[cacheKey] ?? Birthday.calculateAge(b.birthdate);
+
         // Update cache
         _daysUntilCache[cacheKey] = daysUntil;
         _ageCache[cacheKey] = age;
-        
+
         return b.copyWith(daysUntil: daysUntil, age: age);
       }).toList();
-      
+
       // Sort by days until
       _birthdays.sort((a, b) => a.daysUntil.compareTo(b.daysUntil));
       _error = null;
@@ -72,7 +71,7 @@ class BirthdayProvider with ChangeNotifier {
         daysUntil: Birthday.calculateDaysUntil(birthday.birthdate),
         age: Birthday.calculateAge(birthday.birthdate),
       );
-      
+
       _birthdays.add(newBirthday);
       _birthdays.sort((a, b) => a.daysUntil.compareTo(b.daysUntil));
       await _storageService.saveBirthdays(_birthdays);
@@ -92,9 +91,10 @@ class BirthdayProvider with ChangeNotifier {
       _error = null;
       final index = _birthdays.indexWhere((b) => b.id == updatedBirthday.id);
       if (index != -1) {
-        final daysUntil = Birthday.calculateDaysUntil(updatedBirthday.birthdate);
+        final daysUntil =
+            Birthday.calculateDaysUntil(updatedBirthday.birthdate);
         final age = Birthday.calculateAge(updatedBirthday.birthdate);
-        
+
         _birthdays[index] = updatedBirthday.copyWith(
           daysUntil: daysUntil,
           age: age,
@@ -129,6 +129,26 @@ class BirthdayProvider with ChangeNotifier {
     }
   }
 
+  Future<void> deleteAllBirthdays() async {
+    try {
+      _error = null;
+      // Cancel all reminders
+      for (var birthday in _birthdays) {
+        await NotificationService.cancelReminder(birthday.id);
+      }
+      _birthdays.clear();
+      _daysUntilCache.clear();
+      _ageCache.clear();
+      await _storageService.saveBirthdays(_birthdays);
+      notifyListeners();
+    } catch (e, stackTrace) {
+      _error = ErrorHandler.handleError(e, stackTrace);
+      _error?.log();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   List<Birthday> getUpcomingBirthdays() {
     return _birthdays.where((b) => b.daysUntil >= 0).toList();
   }
@@ -152,4 +172,3 @@ class BirthdayProvider with ChangeNotifier {
     }).toList();
   }
 }
-

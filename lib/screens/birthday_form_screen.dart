@@ -9,9 +9,7 @@ import '../models/birthday.dart';
 import '../providers/birthday_provider.dart';
 import '../services/permission_service.dart';
 import '../services/error_handler.dart';
-import '../widgets/contact_picker.dart';
 import '../theme/app_theme.dart';
-import '../widgets/minimal_card.dart';
 
 class BirthdayFormScreen extends StatefulWidget {
   final Birthday? birthday;
@@ -25,13 +23,15 @@ class BirthdayFormScreen extends StatefulWidget {
 class _BirthdayFormScreenState extends State<BirthdayFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _notesController = TextEditingController();
   DateTime? _selectedDate;
   String? _photo;
   File? _photoFile;
   bool _reminderEnabled = true;
-  int _reminderDays = 1;
+  Set<int> _selectedReminderDays = {1}; // Multiple selection
+  EventType _eventType = EventType.birthday;
   String? _contactId;
-  Contact? _selectedContact;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -42,7 +42,8 @@ class _BirthdayFormScreenState extends State<BirthdayFormScreen> {
       _selectedDate = widget.birthday!.birthdate;
       _photo = widget.birthday!.photo;
       _reminderEnabled = widget.birthday!.reminderEnabled;
-      _reminderDays = widget.birthday!.reminderDays;
+      _selectedReminderDays = {widget.birthday!.reminderDays};
+      _eventType = widget.birthday!.eventType;
       _contactId = widget.birthday!.contactId;
       _loadContactIfExists();
     }
@@ -57,9 +58,7 @@ class _BirthdayFormScreenState extends State<BirthdayFormScreen> {
 
       final contact = await FlutterContacts.getContact(_contactId!);
       if (contact != null) {
-        setState(() {
-          _selectedContact = contact;
-        });
+        // Contact exists
       }
     } catch (e) {
       // Contact might not exist anymore, ignore
@@ -69,6 +68,8 @@ class _BirthdayFormScreenState extends State<BirthdayFormScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _phoneController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -86,7 +87,6 @@ class _BirthdayFormScreenState extends State<BirthdayFormScreen> {
 
   Future<void> _handlePhotoUpload() async {
     try {
-      // Request storage permission
       final hasPermission =
           await PermissionService.requestStoragePermission(context);
       if (!hasPermission) {
@@ -133,117 +133,15 @@ class _BirthdayFormScreenState extends State<BirthdayFormScreen> {
     }
   }
 
-  Future<void> _handlePhotoFromCamera() async {
-    try {
-      // Request camera permission
-      final hasPermission =
-          await PermissionService.requestCameraPermission(context);
-      if (!hasPermission) {
-        return;
-      }
-
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
-
-      if (image != null) {
-        setState(() {
-          _photoFile = File(image.path);
-          _photo = image.path;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error taking photo: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
-    }
-  }
-
-  void _showPhotoOptions() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppTheme.getSurfaceColor(isDark),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppTheme.radiusLarge),
-        ),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(
-                Icons.photo_library,
-                color: AppTheme.getTextPrimaryColor(isDark),
-              ),
-              title: Text(
-                'Choose from Gallery',
-                style: AppTheme.bodyMedium(isDark),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _handlePhotoUpload();
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.camera_alt,
-                color: AppTheme.getTextPrimaryColor(isDark),
-              ),
-              title: Text(
-                'Take Photo',
-                style: AppTheme.bodyMedium(isDark),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _handlePhotoFromCamera();
-              },
-            ),
-            if (_photo != null)
-              Builder(
-                builder: (context) {
-                  return ListTile(
-                    leading: const Icon(
-                      Icons.delete,
-                      color: AppTheme.errorColor,
-                    ),
-                    title: Text(
-                      'Remove Photo',
-                      style: AppTheme.bodyMedium(isDark).copyWith(
-                        color: AppTheme.errorColor,
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      setState(() {
-                        _photo = null;
-                        _photoFile = null;
-                      });
-                    },
-                  );
-                },
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _handleSave() async {
     if (_formKey.currentState!.validate() && _selectedDate != null) {
       final provider = Provider.of<BirthdayProvider>(context, listen: false);
 
       try {
+        // Use the first selected reminder day (or default to 1)
+        final reminderDays =
+            _selectedReminderDays.isNotEmpty ? _selectedReminderDays.first : 1;
+
         final birthday = Birthday(
           id: widget.birthday?.id ?? '',
           name: _nameController.text.trim(),
@@ -252,8 +150,9 @@ class _BirthdayFormScreenState extends State<BirthdayFormScreen> {
           daysUntil: Birthday.calculateDaysUntil(_selectedDate!),
           photo: _photo,
           reminderEnabled: _reminderEnabled,
-          reminderDays: _reminderDays,
+          reminderDays: reminderDays,
           contactId: _contactId,
+          eventType: _eventType,
         );
 
         if (widget.birthday != null) {
@@ -268,8 +167,8 @@ class _BirthdayFormScreenState extends State<BirthdayFormScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(widget.birthday != null
-                  ? 'Birthday updated successfully!'
-                  : 'Birthday added successfully!'),
+                  ? 'Event updated successfully!'
+                  : 'Event added successfully!'),
               backgroundColor: AppTheme.successColor,
             ),
           );
@@ -299,369 +198,606 @@ class _BirthdayFormScreenState extends State<BirthdayFormScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppTheme.getBackgroundColor(isDark),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.primaryColor.withValues(alpha: 0.05),
-              AppTheme.secondaryColor.withValues(alpha: 0.05),
-              AppTheme.accentColor.withValues(alpha: 0.05),
-            ],
-          ),
+      backgroundColor: AppTheme.beigeContainer(isDark),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppTheme.onSurface(isDark)),
+          onPressed: () => Navigator.pop(context),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.all(AppTheme.spacingMD),
-                decoration: BoxDecoration(
-                  color: AppTheme.getSurfaceColor(isDark),
-                  boxShadow: AppTheme.cardShadow,
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.arrow_back,
-                        color: AppTheme.getTextPrimaryColor(isDark),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    Expanded(
-                      child: Text(
-                        widget.birthday == null
-                            ? 'Add Birthday'
-                            : 'Edit Birthday',
-                        style: AppTheme.heading3(isDark),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(width: 48),
-                  ],
-                ),
+        title: Text(
+          widget.birthday == null ? 'Add Event' : 'Edit Event',
+          style: AppTheme.heading3(isDark),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppTheme.spacingLG),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Event Type Section
+            Text(
+              'Event Type',
+              style: AppTheme.heading3(isDark).copyWith(
+                fontWeight: FontWeight.w700,
               ),
-              // Form
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppTheme.spacingMD),
-                  child: MinimalCard(
-                    elevation: 3,
-                    padding: const EdgeInsets.all(AppTheme.spacingLG),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Photo Upload
-                          Center(
-                            child: Column(
-                              children: [
-                                GestureDetector(
-                                  onTap: _showPhotoOptions,
-                                  child: CircleAvatar(
-                                    radius: 48,
-                                    backgroundColor: AppTheme.primaryColor
-                                        .withValues(alpha: 0.1),
-                                    backgroundImage: _photo != null
-                                        ? (_photoFile != null
-                                            ? FileImage(_photoFile!)
-                                                as ImageProvider
-                                            : CachedNetworkImageProvider(
-                                                _photo!) as ImageProvider)
-                                        : null,
-                                    child: _photo == null
-                                        ? const Icon(
-                                            Icons.camera_alt,
-                                            size: 32,
-                                            color: AppTheme.primaryColor,
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                OutlinedButton.icon(
-                                  onPressed: _showPhotoOptions,
-                                  icon: const Icon(Icons.camera_alt),
-                                  label: Text(_photo == null
-                                      ? 'Add Photo'
-                                      : 'Change Photo'),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          // Name
-                          TextFormField(
-                            controller: _nameController,
-                            decoration: InputDecoration(
-                              labelText: 'Full Name *',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                    AppTheme.radiusMedium),
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Name is required';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          // Birthdate
-                          Semantics(
-                            label: 'Birth Date',
-                            hint: 'Tap to select birth date',
-                            button: true,
-                            child: InkWell(
-                              onTap: _selectDate,
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'Birth Date *',
-                                  prefixIcon: const Icon(
-                                    Icons.calendar_today,
-                                    semanticLabel: 'Calendar',
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        AppTheme.radiusMedium),
-                                  ),
-                                ),
-                                child: Text(
-                                  _selectedDate == null
-                                      ? 'Select date'
-                                      : '${_getMonthName(_selectedDate!.month)} ${_selectedDate!.day}, ${_selectedDate!.year}',
-                                  style: AppTheme.bodyMedium(isDark).copyWith(
-                                    color: _selectedDate == null
-                                        ? AppTheme.getTextTertiaryColor(isDark)
-                                        : AppTheme.getTextPrimaryColor(isDark),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (_selectedDate != null) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              'Age: ${Birthday.calculateAge(_selectedDate!)} years old',
-                              style: AppTheme.bodySmall(isDark),
-                            ),
-                          ],
-                          const SizedBox(height: 24),
-                          // Contact Link
-                          InkWell(
-                            onTap: () async {
-                              showDialog(
-                                context: context,
-                                builder: (context) => ContactPicker(
-                                  selectedContactId: _contactId,
-                                  onContactSelected: (contact) {
-                                    setState(() {
-                                      if (contact != null) {
-                                        _selectedContact = contact;
-                                        _contactId = contact.id;
-                                        // Auto-fill name if empty
-                                        if (_nameController.text.isEmpty) {
-                                          _nameController.text =
-                                              contact.displayName;
-                                        }
-                                      } else {
-                                        _selectedContact = null;
-                                        _contactId = null;
-                                      }
-                                    });
-                                  },
-                                ),
-                              );
-                            },
-                            child: InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: 'Link Contact (Optional)',
-                                prefixIcon: const Icon(Icons.contacts),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusMedium),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      _selectedContact != null
-                                          ? _selectedContact!.displayName
-                                          : 'No contact selected',
-                                      style:
-                                          AppTheme.bodyMedium(isDark).copyWith(
-                                        color: _selectedContact != null
-                                            ? AppTheme.getTextPrimaryColor(
-                                                isDark)
-                                            : AppTheme.getTextTertiaryColor(
-                                                isDark),
-                                      ),
+            ),
+            const SizedBox(height: AppTheme.spacingMD),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildEventTypeButton(
+                    icon: Icons.card_giftcard_rounded,
+                    label: 'Birthday',
+                    isSelected: _eventType == EventType.birthday,
+                    onTap: () =>
+                        setState(() => _eventType = EventType.birthday),
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacingMD),
+                Expanded(
+                  child: _buildEventTypeButton(
+                    icon: Icons.favorite,
+                    label: 'Anniversary',
+                    isSelected: _eventType == EventType.anniversary,
+                    onTap: () =>
+                        setState(() => _eventType = EventType.anniversary),
+                    isDark: isDark,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppTheme.spacingXL),
+
+            // Photo Section
+            Center(
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: _handlePhotoUpload,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: _photo != null
+                          ? ClipOval(
+                              child: _photoFile != null
+                                  ? Image.file(
+                                      _photoFile!,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : CachedNetworkImage(
+                                      imageUrl: _photo!,
+                                      fit: BoxFit.cover,
                                     ),
-                                  ),
-                                  if (_selectedContact != null)
-                                    IconButton(
-                                      icon: const Icon(Icons.close, size: 20),
-                                      onPressed: () {
-                                        setState(() {
-                                          _selectedContact = null;
-                                          _contactId = null;
-                                        });
-                                      },
-                                    ),
-                                ],
-                              ),
+                            )
+                          : const Icon(
+                              Icons.camera_alt,
+                              size: 48,
+                              color: AppTheme.primaryColor,
                             ),
-                          ),
-                          const SizedBox(height: 24),
-                          const Divider(),
-                          const SizedBox(height: 16),
-                          // Reminder Settings
-                          Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor
-                                      .withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusSmall),
-                                ),
-                                child: const Icon(
-                                  Icons.notifications,
-                                  color: AppTheme.primaryColor,
-                                ),
-                              ),
-                              const SizedBox(width: AppTheme.spacingSM),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Enable Reminder',
-                                      style: AppTheme.labelLarge(isDark),
-                                    ),
-                                    Text(
-                                      'Get notified before the birthday',
-                                      style: AppTheme.bodySmall(isDark),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Switch(
-                                value: _reminderEnabled,
-                                onChanged: (value) {
-                                  setState(() => _reminderEnabled = value);
-                                },
-                                activeTrackColor: AppTheme.primaryColor,
-                              ),
-                            ],
-                          ),
-                          if (_reminderEnabled) ...[
-                            const SizedBox(height: 16),
-                            DropdownButtonFormField<int>(
-                              initialValue: _reminderDays,
-                              decoration: InputDecoration(
-                                labelText: 'Remind me',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusMedium),
-                                ),
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 1, child: Text('1 day before')),
-                                DropdownMenuItem(
-                                    value: 2, child: Text('2 days before')),
-                                DropdownMenuItem(
-                                    value: 3, child: Text('3 days before')),
-                                DropdownMenuItem(
-                                    value: 7, child: Text('1 week before')),
-                                DropdownMenuItem(
-                                    value: 14, child: Text('2 weeks before')),
-                              ],
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() => _reminderDays = value);
-                                }
-                              },
-                            ),
-                          ],
-                          const SizedBox(height: 32),
-                          // Actions
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: AppTheme.spacingMD),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppTheme.radiusMedium),
-                                    ),
-                                  ),
-                                  child: const Text('Cancel'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: _handleSave,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.primaryColor,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: AppTheme.spacingMD),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppTheme.radiusMedium),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    widget.birthday == null
-                                        ? 'Add Birthday'
-                                        : 'Save Changes',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spacingMD),
+                  OutlinedButton.icon(
+                    onPressed: _handlePhotoUpload,
+                    icon: const Icon(Icons.camera_alt, size: 16),
+                    label: const Text('Add Photo'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.onSurfaceVariant(isDark),
+                      side: BorderSide(color: AppTheme.outline(isDark)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingMD,
+                        vertical: AppTheme.spacingSM,
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+
+            const SizedBox(height: AppTheme.spacingXL),
+
+            // Form Fields
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Full Name
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Full Name *',
+                      filled: true,
+                      fillColor: AppTheme.beigeContainer(isDark),
+                      border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
+                        borderSide: BorderSide(color: AppTheme.outline(isDark)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
+                        borderSide: BorderSide(color: AppTheme.outline(isDark)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
+                        borderSide: const BorderSide(
+                            color: AppTheme.primaryColor, width: 2),
+                      ),
+                      hintText: 'Enter full name',
+                      hintStyle:
+                          TextStyle(color: AppTheme.onSurfaceVariant(isDark)),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Name is required';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: AppTheme.spacingMD),
+
+                  // Birth Date
+                  InkWell(
+                    onTap: _selectDate,
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: _eventType == EventType.anniversary
+                            ? 'Anniversary Date *'
+                            : 'Birth Date *',
+                        filled: true,
+                        fillColor: const Color(0xFFF5F5F0),
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMedium),
+                          borderSide:
+                              BorderSide(color: AppTheme.outline(isDark)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMedium),
+                          borderSide:
+                              BorderSide(color: AppTheme.outline(isDark)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMedium),
+                          borderSide: const BorderSide(
+                              color: AppTheme.primaryColor, width: 2),
+                        ),
+                        prefixIcon: const Icon(Icons.calendar_today, size: 20),
+                        hintText: 'dd/mm/yyyy',
+                        hintStyle:
+                            TextStyle(color: AppTheme.onSurfaceVariant(isDark)),
+                      ),
+                      child: Text(
+                        _selectedDate == null
+                            ? 'dd/mm/yyyy'
+                            : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                        style: AppTheme.bodyMedium(false).copyWith(
+                          color: _selectedDate == null
+                              ? AppTheme.onSurfaceVariant(isDark)
+                              : AppTheme.onSurface(isDark),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppTheme.spacingMD),
+
+                  // Phone Number (Optional)
+                  TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      labelText: 'Phone Number (Optional)',
+                      filled: true,
+                      fillColor: const Color(0xFFF5F5F0),
+                      border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
+                        borderSide: BorderSide(color: AppTheme.outline(isDark)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
+                        borderSide: BorderSide(color: AppTheme.outline(isDark)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
+                        borderSide: const BorderSide(
+                            color: AppTheme.primaryColor, width: 2),
+                      ),
+                      prefixIcon: const Icon(Icons.phone, size: 20),
+                      hintText: '+1 (555) 000-0000',
+                      hintStyle:
+                          TextStyle(color: AppTheme.onSurfaceVariant(isDark)),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppTheme.spacingXL),
+
+                  // Enable Reminders Section
+                  Container(
+                    padding: const EdgeInsets.all(AppTheme.spacingMD),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface(isDark),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                      border: Border.all(color: AppTheme.outline(isDark)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.notifications_outlined,
+                              color: AppTheme.primaryColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: AppTheme.spacingSM),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Enable Reminders',
+                                    style: AppTheme.labelLarge(false).copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Get notified before the event',
+                                    style: AppTheme.bodySmall(false).copyWith(
+                                      color: AppTheme.onSurfaceVariant(isDark),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _reminderEnabled,
+                              onChanged: (value) {
+                                setState(() => _reminderEnabled = value);
+                              },
+                              activeThumbColor: AppTheme.primaryColor,
+                            ),
+                          ],
+                        ),
+                        if (_reminderEnabled) ...[
+                          const SizedBox(height: AppTheme.spacingLG),
+                          Text(
+                            'Remind me (select multiple)',
+                            style: AppTheme.labelLarge(false).copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: AppTheme.spacingMD),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildReminderDayButton(1, isDark),
+                              ),
+                              const SizedBox(width: AppTheme.spacingMD),
+                              Expanded(
+                                child: _buildReminderDayButton(2, isDark),
+                              ),
+                              const SizedBox(width: AppTheme.spacingMD),
+                              Expanded(
+                                child: _buildReminderDayButton(4, isDark),
+                              ),
+                            ],
+                          ),
+                          if (_selectedReminderDays.isNotEmpty) ...[
+                            const SizedBox(height: AppTheme.spacingSM),
+                            Text(
+                              'Selected: ${_selectedReminderDays.length} reminder${_selectedReminderDays.length != 1 ? 's' : ''}',
+                              style: AppTheme.bodySmall(false).copyWith(
+                                color: AppTheme.onSurfaceVariant(isDark),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: AppTheme.spacingXL),
+
+                  // Notes Section
+                  Container(
+                    padding: const EdgeInsets.all(AppTheme.spacingMD),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface(isDark),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                      border: Border.all(color: AppTheme.outline(isDark)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.note_outlined,
+                              color: AppTheme.onSurfaceVariant(isDark),
+                              size: 20,
+                            ),
+                            const SizedBox(width: AppTheme.spacingSM),
+                            Text(
+                              'Notes (Optional)',
+                              style: AppTheme.labelLarge(false).copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppTheme.spacingMD),
+                        TextField(
+                          controller: _notesController,
+                          maxLines: 4,
+                          decoration: InputDecoration(
+                            hintText:
+                                'Add any special notes, gift ideas, or memories...',
+                            hintStyle: TextStyle(
+                                color: AppTheme.onSurfaceVariant(isDark)),
+                            border: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusMedium),
+                              borderSide:
+                                  BorderSide(color: AppTheme.outline(isDark)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusMedium),
+                              borderSide:
+                                  BorderSide(color: AppTheme.outline(isDark)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusMedium),
+                              borderSide: const BorderSide(
+                                  color: AppTheme.primaryColor, width: 2),
+                            ),
+                            filled: true,
+                            fillColor: const Color(0xFFF5F5F0),
+                            contentPadding:
+                                const EdgeInsets.all(AppTheme.spacingMD),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: AppTheme.spacingXL),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppTheme.spacingMD + 4,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusLarge),
+                            ),
+                            side: BorderSide(color: AppTheme.outline(isDark)),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: AppTheme.labelLarge(false).copyWith(
+                              color: AppTheme.onSurface(isDark),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppTheme.spacingMD),
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: AppTheme.contactSyncGradient,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusLarge),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            onPressed: _handleSave,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: AppTheme.spacingMD + 4,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppTheme.radiusLarge),
+                              ),
+                            ),
+                            child: Text(
+                              widget.birthday == null
+                                  ? _eventType == EventType.anniversary
+                                      ? 'Add Anniversary'
+                                      : 'Add Birthday'
+                                  : 'Save Changes',
+                              style: AppTheme.labelLarge(false).copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  String _getMonthName(int month) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-    return months[month - 1];
+  Widget _buildEventTypeButton({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          vertical: AppTheme.spacingMD,
+          horizontal: AppTheme.spacingSM,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.primaryColor.withValues(alpha: 0.1)
+              : AppTheme.surface(isDark),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          border: Border.all(
+            color:
+                isSelected ? AppTheme.primaryColor : AppTheme.outline(isDark),
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected
+                  ? AppTheme.primaryColor
+                  : AppTheme.onSurfaceVariant(isDark),
+              size: 32,
+            ),
+            const SizedBox(height: AppTheme.spacingXS),
+            Text(
+              label,
+              style: AppTheme.labelMedium(false).copyWith(
+                color: isSelected
+                    ? AppTheme.primaryColor
+                    : AppTheme.onSurfaceVariant(isDark),
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReminderDayButton(int days, bool isDark) {
+    final isSelected = _selectedReminderDays.contains(days);
+    return InkWell(
+      onTap: () {
+        setState(() {
+          if (isSelected) {
+            _selectedReminderDays.remove(days);
+          } else {
+            _selectedReminderDays.add(days);
+          }
+        });
+      },
+      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.primaryColor.withValues(alpha: 0.1)
+              : AppTheme.surface(isDark),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          border: Border.all(
+            color:
+                isSelected ? AppTheme.primaryColor : AppTheme.outline(isDark),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '$days',
+                  style: AppTheme.heading3(false).copyWith(
+                    color: isSelected
+                        ? AppTheme.primaryColor
+                        : AppTheme.onSurface(isDark),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 24,
+                  ),
+                ),
+                Text(
+                  days == 1 ? 'day before' : 'days before',
+                  style: AppTheme.bodySmall(false).copyWith(
+                    color: isSelected
+                        ? AppTheme.primaryColor
+                        : AppTheme.onSurfaceVariant(isDark),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+            if (isSelected)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check,
+                    size: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }

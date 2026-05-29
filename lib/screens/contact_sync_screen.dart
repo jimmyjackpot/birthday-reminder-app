@@ -131,66 +131,148 @@ class _ContactSyncScreenState extends State<ContactSyncScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppTheme.getBackgroundColor(isDark),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.primaryColor.withValues(alpha: 0.05),
-              AppTheme.secondaryColor.withValues(alpha: 0.05),
-              AppTheme.accentColor.withValues(alpha: 0.05),
-            ],
+      backgroundColor: AppTheme.surfaceContainer(isDark),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spacingLG,
+            vertical: AppTheme.spacingXL,
           ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.spacingLG),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 120,
-                  height: 120,
+          child: Column(
+            children: [
+              const Spacer(),
+              
+              // Gradient Icon
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.contactSyncGradient,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.people_rounded,
+                  size: 64,
+                  color: Colors.white,
+                ),
+              ),
+              
+              const SizedBox(height: AppTheme.spacingLG),
+              
+              // Title
+              Text(
+                'Sync Your Contacts',
+                style: AppTheme.heading1(false).copyWith(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.onSurface(isDark),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: AppTheme.spacingSM),
+              
+              // Subtitle
+              Text(
+                'Import birthdays from your device contacts to never miss a celebration',
+                style: AppTheme.bodyMedium(false).copyWith(
+                  color: AppTheme.onSurfaceVariant(isDark),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: AppTheme.spacingXL),
+              
+              // Feature Card
+              Container(
+                padding: const EdgeInsets.all(AppTheme.spacingLG),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                  border: Border.all(
+                    color: AppTheme.outline(isDark),
+                    width: 1,
+                  ),
+                  boxShadow: AppTheme.cardShadow(isDark),
+                ),
+                child: Column(
+                  children: [
+                    // Automatic Import
+                    _buildFeatureItem(
+                      icon: Icons.check_circle_outline,
+                      iconColor: AppTheme.primaryColor,
+                      title: 'Automatic Import',
+                      description: 'Instantly import birthdays from contact list',
+                      borderColor: AppTheme.primaryColor.withValues(alpha: 0.3),
+                      isDark: isDark,
+                    ),
+                    
+                    const SizedBox(height: AppTheme.spacingMD),
+                    Divider(height: 1, color: AppTheme.outlineVariant(isDark)),
+                    const SizedBox(height: AppTheme.spacingMD),
+                    
+                    // Stay Updated
+                    _buildFeatureItem(
+                      icon: Icons.sync,
+                      iconColor: AppTheme.secondaryColor,
+                      title: 'Stay Updated',
+                      description: 'Sync automatically when contacts change',
+                      borderColor: AppTheme.secondaryColor.withValues(alpha: 0.3),
+                      isDark: isDark,
+                    ),
+                    
+                    const SizedBox(height: AppTheme.spacingMD),
+                    Divider(height: 1, color: AppTheme.outlineVariant(isDark)),
+                    const SizedBox(height: AppTheme.spacingMD),
+                    
+                    // Privacy First
+                    _buildFeatureItem(
+                      icon: Icons.info_outline,
+                      iconColor: AppTheme.accentColor,
+                      title: 'Privacy First',
+                      description: 'Only birthday information is accessed',
+                      borderColor: AppTheme.accentColor.withValues(alpha: 0.3),
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: AppTheme.spacingXL),
+              
+              // Enable Contact Sync Button
+              SizedBox(
+                width: double.infinity,
+                child: Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
+                    gradient: AppTheme.contactSyncGradient,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: const Icon(
-                    Icons.people_rounded,
-                    size: 64,
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spacingLG),
-                Text(
-                  'Sync Your Contacts',
-                  style: AppTheme.heading2(isDark),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spacingSM),
-                Text(
-                  'Import birthdays from your contacts automatically',
-                  textAlign: TextAlign.center,
-                  style: AppTheme.bodyMedium(isDark).copyWith(
-                    color: AppTheme.getTextSecondaryColor(isDark),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spacingXL),
-                SizedBox(
-                  width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleSync,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
                       padding: const EdgeInsets.symmetric(
-                        vertical: AppTheme.spacingMD,
+                        vertical: AppTheme.spacingMD + 4,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusMedium),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                       ),
                     ),
                     child: _isLoading
@@ -204,26 +286,112 @@ class _ContactSyncScreenState extends State<ContactSyncScreen> {
                             ),
                           )
                         : Text(
-                            'Enable Sync',
-                            style: AppTheme.labelLarge(isDark).copyWith(
+                            'Enable Contact Sync',
+                            style: AppTheme.labelLarge(false).copyWith(
                               color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
                             ),
                           ),
                   ),
                 ),
-                const SizedBox(height: AppTheme.spacingSM),
-                TextButton(
-                  onPressed: _isLoading ? null : widget.onSkip,
-                  child: Text(
-                    'Skip for now',
-                    style: AppTheme.labelLarge(isDark),
+              ),
+              
+              const SizedBox(height: AppTheme.spacingMD),
+              
+              // Skip Button
+              TextButton(
+                onPressed: _isLoading ? null : widget.onSkip,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingLG,
+                    vertical: AppTheme.spacingSM,
                   ),
                 ),
-              ],
-            ),
+                child: Text(
+                  'Skip for Now',
+                  style: AppTheme.labelLarge(false).copyWith(
+                    color: AppTheme.onSurface(isDark),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: AppTheme.spacingLG),
+              
+              // Footer Text
+              Text(
+                'You can enable or disable this feature anytime in settings',
+                style: AppTheme.bodySmall(false).copyWith(
+                  color: AppTheme.onSurfaceVariant(isDark),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const Spacer(),
+            ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildFeatureItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String description,
+    required Color borderColor,
+    required bool isDark,
+  }) {
+    return Row(
+      children: [
+        // Icon Container
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: AppTheme.surface(isDark),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: borderColor,
+              width: 2,
+            ),
+          ),
+          child: Icon(
+            icon,
+            color: iconColor,
+            size: 24,
+          ),
+        ),
+        
+        const SizedBox(width: AppTheme.spacingMD),
+        
+        // Text Content
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: AppTheme.labelLarge(false).copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.onSurface(isDark),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: AppTheme.bodySmall(false).copyWith(
+                  color: AppTheme.onSurfaceVariant(isDark),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
+

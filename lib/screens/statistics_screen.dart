@@ -43,9 +43,9 @@ class StatisticsScreen extends StatelessWidget {
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
         return Scaffold(
-          backgroundColor: AppTheme.getBackgroundColor(isDark),
+          backgroundColor: AppTheme.surfaceContainer(isDark),
           appBar: AppBar(
-            backgroundColor: AppTheme.getSurfaceColor(isDark),
+            backgroundColor: AppTheme.surface(isDark),
             elevation: 0,
             title: Text(
               'Statistics',
@@ -61,7 +61,7 @@ class StatisticsScreen extends StatelessWidget {
                         Icon(
                           Icons.bar_chart_outlined,
                           size: 64,
-                          color: AppTheme.getTextTertiaryColor(isDark),
+                          color: AppTheme.onSurfaceDisabled(isDark),
                         ),
                         const SizedBox(height: AppTheme.spacingMD),
                         Text(
@@ -72,7 +72,7 @@ class StatisticsScreen extends StatelessWidget {
                         Text(
                           'Add birthdays to see statistics',
                           style: AppTheme.bodyMedium(isDark).copyWith(
-                            color: AppTheme.getTextSecondaryColor(isDark),
+                            color: AppTheme.onSurfaceVariant(isDark),
                           ),
                         ),
                       ],
@@ -179,7 +179,7 @@ class StatisticsScreen extends StatelessWidget {
                                             ? 0
                                             : count / birthdays.length,
                                         backgroundColor:
-                                            AppTheme.getBorderColor(isDark),
+                                            AppTheme.outline(isDark),
                                         valueColor:
                                             const AlwaysStoppedAnimation<Color>(
                                           AppTheme.primaryColor,

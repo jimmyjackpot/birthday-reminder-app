@@ -35,12 +35,9 @@ class MinimalButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           ),
-          backgroundColor: isPrimary 
-              ? AppTheme.primaryColor 
-              : AppTheme.getSurfaceColor(isDark),
-          foregroundColor: isPrimary 
-              ? Colors.white 
-              : AppTheme.primaryColor,
+          backgroundColor:
+              isPrimary ? AppTheme.primaryColor : AppTheme.surface(isDark),
+          foregroundColor: isPrimary ? Colors.white : AppTheme.primaryColor,
         ),
         child: isLoading
             ? const SizedBox(
@@ -81,7 +78,7 @@ class MinimalButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           ),
-          side: BorderSide(color: AppTheme.getBorderColor(isDark)),
+          side: BorderSide(color: AppTheme.outline(isDark)),
         ),
         child: isLoading
             ? const SizedBox(
@@ -111,4 +108,3 @@ class MinimalButton extends StatelessWidget {
     return button;
   }
 }
-

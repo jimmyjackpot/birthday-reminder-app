@@ -22,9 +22,9 @@ class ContactSyncService {
         withThumbnail: false,
         withAccounts: false,
       );
-      
+
       debugPrint('ContactSyncService: Found ${contacts.length} contacts');
-      
+
       final birthdays = <Birthday>[];
       int contactsWithBirthdays = 0;
 
@@ -33,21 +33,21 @@ class ContactSyncService {
         if (contact.name.first.isEmpty && contact.displayName.isEmpty) {
           continue;
         }
-        
+
         // Get display name
-        final displayName = contact.displayName.isNotEmpty 
-            ? contact.displayName 
+        final displayName = contact.displayName.isNotEmpty
+            ? contact.displayName
             : '${contact.name.first} ${contact.name.last}'.trim();
-        
+
         if (displayName.isEmpty) continue;
-        
+
         // Check if contact has birthday in events
         DateTime? birthdate;
         for (var event in contact.events) {
           // Check if this is a birthday event
           // flutter_contacts uses EventLabel enum
           bool isBirthday = false;
-          
+
           try {
             // Check label (most reliable method)
             if (event.label == EventLabel.birthday) {
@@ -64,36 +64,41 @@ class ContactSyncService {
             debugPrint('ContactSyncService: Error checking event type: $e');
             continue;
           }
-          
+
           if (isBirthday) {
             // Construct DateTime from year, month, day
             // Use current year if year is null or invalid
             final year = event.year ?? DateTime.now().year;
             try {
               // Validate month and day are valid
-              if (event.month >= 1 && event.month <= 12 && 
-                  event.day >= 1 && event.day <= 31) {
+              if (event.month >= 1 &&
+                  event.month <= 12 &&
+                  event.day >= 1 &&
+                  event.day <= 31) {
                 birthdate = DateTime(year, event.month, event.day);
                 // Verify the date is actually valid (handles cases like Feb 30)
-                if (birthdate.month == event.month && birthdate.day == event.day) {
+                if (birthdate.month == event.month &&
+                    birthdate.day == event.day) {
                   contactsWithBirthdays++;
                   break;
                 }
               }
             } catch (e) {
-              debugPrint('ContactSyncService: Invalid date for $displayName: $e');
+              debugPrint(
+                  'ContactSyncService: Invalid date for $displayName: $e');
               continue;
             }
           }
         }
-        
+
         // If we found a birthday, add it
         if (birthdate != null) {
           // Only add if birthdate is valid (allow future years for children)
           final now = DateTime.now();
           if (birthdate.year >= 1900 && birthdate.year <= now.year + 20) {
             // Use a unique ID to avoid conflicts
-            final birthdayId = 'contact_${contact.id}_${birthdate.toIso8601String()}';
+            final birthdayId =
+                'contact_${contact.id}_${birthdate.toIso8601String()}';
             final birthday = Birthday(
               id: birthdayId,
               name: displayName,
@@ -110,19 +115,24 @@ class ContactSyncService {
         }
       }
 
-      debugPrint('ContactSyncService: Found ${birthdays.length} birthdays from $contactsWithBirthdays contacts with birthday events');
-      
+      debugPrint(
+          'ContactSyncService: Found ${birthdays.length} birthdays from $contactsWithBirthdays contacts with birthday events');
+
       if (birthdays.isEmpty) {
-        debugPrint('ContactSyncService: No birthdays found. Make sure contacts have birthday information set.');
+        debugPrint(
+            'ContactSyncService: No birthdays found. Make sure contacts have birthday information set.');
       }
 
       return birthdays;
     } catch (e, stackTrace) {
       // Provide more detailed error information
-      if (e.toString().contains('permission') || e.toString().contains('Permission')) {
-        throw Exception('Contacts permission denied. Please grant contacts permission to sync birthdays.');
+      if (e.toString().contains('permission') ||
+          e.toString().contains('Permission')) {
+        throw Exception(
+            'Contacts permission denied. Please grant contacts permission to sync birthdays.');
       }
-      throw Exception('Failed to sync contacts: ${e.toString()}\nStack trace: $stackTrace');
+      throw Exception(
+          'Failed to sync contacts: ${e.toString()}\nStack trace: $stackTrace');
     }
   }
 

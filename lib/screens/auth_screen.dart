@@ -47,19 +47,17 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
-      backgroundColor: AppTheme.getBackgroundColor(isDark),
+      backgroundColor: AppTheme.surfaceContainer(isDark),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppTheme.getBackgroundColor(isDark),
-              isDark 
-                  ? AppTheme.surfaceDark 
-                  : const Color(0xFFF5F7FA),
+              AppTheme.surfaceContainer(isDark),
+              isDark ? AppTheme.surface(true) : const Color(0xFFF5F7FA),
             ],
           ),
         ),
@@ -77,7 +75,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     decoration: BoxDecoration(
                       gradient: AppTheme.primaryGradient,
                       borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                      boxShadow: AppTheme.elevatedShadow,
+                      boxShadow: AppTheme.elevatedShadow(isDark),
                     ),
                     child: const Icon(
                       Icons.cake_rounded,
@@ -93,9 +91,11 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: AppTheme.spacingSM),
                   Text(
-                    _isLogin ? 'Sign in to your account' : 'Create a new account',
+                    _isLogin
+                        ? 'Sign in to your account'
+                        : 'Create a new account',
                     style: AppTheme.bodyMedium(isDark).copyWith(
-                      color: AppTheme.getTextSecondaryColor(isDark),
+                      color: AppTheme.onSurfaceVariant(isDark),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -155,7 +155,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                       : Icons.visibility_rounded,
                                 ),
                                 onPressed: () {
-                                  setState(() => _showPassword = !_showPassword);
+                                  setState(
+                                      () => _showPassword = !_showPassword);
                                 },
                               ),
                             ),
@@ -200,7 +201,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: RichText(
                       text: TextSpan(
                         style: AppTheme.bodyMedium(isDark).copyWith(
-                          color: AppTheme.getTextSecondaryColor(isDark),
+                          color: AppTheme.onSurfaceVariant(isDark),
                         ),
                         children: [
                           TextSpan(

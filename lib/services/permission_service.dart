@@ -1,5 +1,6 @@
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class PermissionService {
   // Request contacts permission
@@ -214,6 +215,77 @@ class PermissionService {
     return await Permission.notification.isGranted;
   }
 
+  // Request calendar permission
+  static Future<bool> requestCalendarPermission(BuildContext context) async {
+    try {
+      // Check if calendar permission is available on this platform
+      try {
+        final status = await Permission.calendarFullAccess.status;
+
+        if (status.isGranted) {
+          return true;
+        }
+
+        if (status.isPermanentlyDenied) {
+          if (context.mounted) {
+            await _showPermissionDialog(
+              context,
+              'Calendar Permission Required',
+              'To sync events to your device calendar, please enable calendar permission in app settings.',
+              Permission.calendarFullAccess,
+            );
+          }
+          return false;
+        }
+
+        // Request permission if denied or not determined
+        await Permission.calendarFullAccess.request();
+
+        // Re-check status after request
+        final newStatus = await Permission.calendarFullAccess.status;
+        return newStatus.isGranted;
+      } catch (e) {
+        // Calendar permission might not be available on this platform
+        debugPrint('Calendar permission check failed: $e');
+
+        // Try requesting directly
+        try {
+          final result = await Permission.calendarFullAccess.request();
+          return result.isGranted;
+        } catch (e2) {
+          debugPrint('Calendar permission request failed: $e2');
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'Calendar permission is not available on this device.'),
+                backgroundColor: AppTheme.warningColor,
+              ),
+            );
+          }
+          return false;
+        }
+      }
+    } catch (e) {
+      debugPrint('Calendar permission error: $e');
+      return false;
+    }
+  }
+
+  // Check if calendar permission is granted
+  static Future<bool> isCalendarPermissionGranted() async {
+    try {
+      // Try to check calendar permission status
+      final status = await Permission.calendarFullAccess.status;
+      return status.isGranted;
+    } catch (e) {
+      // Calendar permission might not be available on this platform
+      // Return false and let the UI handle it gracefully
+      debugPrint('Calendar permission check failed: $e');
+      return false;
+    }
+  }
+
   // Show permission dialog
   static Future<void> _showPermissionDialog(
     BuildContext context,
@@ -293,6 +365,7 @@ class PermissionService {
         }
       }(),
       'notifications': notificationGranted && exactAlarmGranted,
+      'calendar': await isCalendarPermissionGranted(),
     };
   }
 }

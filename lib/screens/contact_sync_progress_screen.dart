@@ -11,8 +11,7 @@ class ContactSyncProgressScreen extends StatefulWidget {
       _ContactSyncProgressScreenState();
 }
 
-class _ContactSyncProgressScreenState
-    extends State<ContactSyncProgressScreen> {
+class _ContactSyncProgressScreenState extends State<ContactSyncProgressScreen> {
   double _progress = 0.0;
 
   @override
@@ -37,9 +36,9 @@ class _ContactSyncProgressScreenState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
-      backgroundColor: AppTheme.getBackgroundColor(isDark),
+      backgroundColor: AppTheme.surfaceContainer(isDark),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -80,8 +79,9 @@ class _ContactSyncProgressScreenState
                   const SizedBox(height: AppTheme.spacingXL),
                   LinearProgressIndicator(
                     value: _progress,
-                    backgroundColor: AppTheme.getBorderColor(isDark),
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                    backgroundColor: AppTheme.outline(isDark),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppTheme.primaryColor),
                     minHeight: 8,
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -89,7 +89,7 @@ class _ContactSyncProgressScreenState
                   Text(
                     '${(_progress * 100).toInt()}%',
                     style: AppTheme.heading3(isDark).copyWith(
-                      color: AppTheme.getTextSecondaryColor(isDark),
+                      color: AppTheme.onSurfaceVariant(isDark),
                     ),
                   ),
                 ],
@@ -101,4 +101,3 @@ class _ContactSyncProgressScreenState
     );
   }
 }
-

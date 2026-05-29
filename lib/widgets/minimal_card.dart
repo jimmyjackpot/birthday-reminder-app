@@ -23,18 +23,18 @@ class MinimalCard extends StatelessWidget {
 
   List<BoxShadow> _getShadow(BuildContext context) {
     if (shadow != null) return shadow!;
-    
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final elevationLevel = elevation ?? 1.0;
-    
+
     if (elevationLevel == 0) {
-      return AppTheme.subtleShadow;
+      return AppTheme.subtleShadow(isDark);
     } else if (elevationLevel == 1) {
-      return AppTheme.cardShadowDark(isDark);
+      return AppTheme.cardShadow(isDark);
     } else if (elevationLevel == 2) {
-      return AppTheme.elevatedShadowDark(isDark);
+      return AppTheme.elevatedShadow(isDark);
     } else {
-      return AppTheme.floatingShadow;
+      return AppTheme.floatingShadow(isDark);
     }
   }
 
@@ -44,11 +44,11 @@ class MinimalCard extends StatelessWidget {
     final card = Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppTheme.getSurfaceColor(isDark),
+        color: backgroundColor ?? AppTheme.surface(isDark),
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         boxShadow: _getShadow(context),
         border: Border.all(
-          color: AppTheme.getBorderColor(isDark).withValues(alpha: 0.1),
+          color: AppTheme.outline(isDark).withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -70,4 +70,3 @@ class MinimalCard extends StatelessWidget {
     return card;
   }
 }
-

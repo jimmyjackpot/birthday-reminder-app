@@ -25,7 +25,8 @@ class _WishDialogState extends State<WishDialog> {
   ];
 
   String _selectedMessage = '';
-  final TextEditingController _customMessageController = TextEditingController();
+  final TextEditingController _customMessageController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -53,8 +54,18 @@ class _WishDialogState extends State<WishDialog> {
 
   String _formatDate(DateTime date) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return '${months[date.month - 1]} ${date.day}';
   }
@@ -62,9 +73,9 @@ class _WishDialogState extends State<WishDialog> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Dialog(
-      backgroundColor: AppTheme.getSurfaceColor(isDark),
+      backgroundColor: AppTheme.surface(isDark),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
       ),
@@ -87,7 +98,7 @@ class _WishDialogState extends State<WishDialog> {
                 IconButton(
                   icon: Icon(
                     Icons.close,
-                    color: AppTheme.getTextPrimaryColor(isDark),
+                    color: AppTheme.onSurface(isDark),
                   ),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -97,7 +108,7 @@ class _WishDialogState extends State<WishDialog> {
             Text(
               'To: ${widget.birthday.name}',
               style: AppTheme.labelLarge(isDark).copyWith(
-                color: AppTheme.getTextSecondaryColor(isDark),
+                color: AppTheme.onSurfaceVariant(isDark),
               ),
             ),
             const SizedBox(height: AppTheme.spacingLG),
@@ -127,12 +138,13 @@ class _WishDialogState extends State<WishDialog> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppTheme.primaryColor.withValues(alpha: 0.1)
-                            : AppTheme.getBackgroundColor(isDark),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                            : AppTheme.surfaceContainer(isDark),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
                         border: Border.all(
                           color: isSelected
                               ? AppTheme.primaryColor
-                              : AppTheme.getBorderColor(isDark),
+                              : AppTheme.outline(isDark),
                           width: isSelected ? 2 : 1,
                         ),
                       ),
@@ -154,7 +166,7 @@ class _WishDialogState extends State<WishDialog> {
                 labelText: 'Custom Message',
                 hintText: 'Write your own message...',
                 hintStyle: AppTheme.bodyMedium(isDark).copyWith(
-                  color: AppTheme.getTextTertiaryColor(isDark),
+                  color: AppTheme.onSurfaceDisabled(isDark),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
@@ -173,9 +185,11 @@ class _WishDialogState extends State<WishDialog> {
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppTheme.spacingMD),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
                       ),
                     ),
                     child: Text(
@@ -191,9 +205,11 @@ class _WishDialogState extends State<WishDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppTheme.spacingMD),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
                       ),
                     ),
                     child: Row(
@@ -203,7 +219,8 @@ class _WishDialogState extends State<WishDialog> {
                         const SizedBox(width: AppTheme.spacingSM),
                         Text(
                           'Send',
-                          style: AppTheme.labelLarge(isDark).copyWith(color: Colors.white),
+                          style: AppTheme.labelLarge(isDark)
+                              .copyWith(color: Colors.white),
                         ),
                       ],
                     ),
@@ -217,5 +234,3 @@ class _WishDialogState extends State<WishDialog> {
     );
   }
 }
-
-

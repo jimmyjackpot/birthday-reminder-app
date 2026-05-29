@@ -44,7 +44,7 @@ class ErrorDisplay extends StatelessWidget {
               Text(
                 title!,
                 style: AppTheme.heading3(isDark).copyWith(
-                  color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimary,
+                  color: AppTheme.onSurface(isDark),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -53,7 +53,7 @@ class ErrorDisplay extends StatelessWidget {
             Text(
               message,
               style: AppTheme.bodyMedium(isDark).copyWith(
-                color: isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondary,
+                color: AppTheme.onSurfaceVariant(isDark),
               ),
               textAlign: TextAlign.center,
             ),

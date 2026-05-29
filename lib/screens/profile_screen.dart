@@ -30,7 +30,7 @@ class ProfileScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppTheme.getBackgroundColor(isDark),
+      backgroundColor: AppTheme.surfaceContainer(isDark),
       body: SafeArea(
         child: Column(
           children: [
@@ -38,8 +38,8 @@ class ProfileScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppTheme.spacingMD),
               decoration: BoxDecoration(
-                color: AppTheme.getSurfaceColor(isDark),
-                boxShadow: AppTheme.cardShadow,
+                color: AppTheme.surface(isDark),
+                boxShadow: AppTheme.cardShadow(isDark),
               ),
               child: Row(
                 children: [
@@ -94,7 +94,7 @@ class ProfileScreen extends StatelessWidget {
                               IconButton(
                                 icon: Icon(
                                   Icons.edit,
-                                  color: AppTheme.getTextSecondaryColor(isDark),
+                                  color: AppTheme.onSurfaceVariant(isDark),
                                 ),
                                 onPressed: () {},
                               ),
@@ -144,7 +144,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           Divider(
                             height: 1,
-                            color: AppTheme.getDividerColor(isDark),
+                            color: AppTheme.outlineVariant(isDark),
                           ),
                           _buildSettingTile(
                             Icons.notifications,
@@ -157,7 +157,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           Divider(
                             height: 1,
-                            color: AppTheme.getDividerColor(isDark),
+                            color: AppTheme.outlineVariant(isDark),
                           ),
                           _buildSettingTile(
                             appProvider.darkMode
@@ -195,7 +195,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           Divider(
                             height: 1,
-                            color: AppTheme.getDividerColor(isDark),
+                            color: AppTheme.outlineVariant(isDark),
                           ),
                           _buildMenuTile(
                             Icons.settings,
@@ -213,7 +213,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           Divider(
                             height: 1,
-                            color: AppTheme.getDividerColor(isDark),
+                            color: AppTheme.outlineVariant(isDark),
                           ),
                           _buildMenuTile(
                             Icons.download,
@@ -249,7 +249,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           Divider(
                             height: 1,
-                            color: AppTheme.getDividerColor(isDark),
+                            color: AppTheme.outlineVariant(isDark),
                           ),
                           _buildMenuTile(
                             Icons.security,
@@ -266,7 +266,7 @@ class ProfileScreen extends StatelessWidget {
                     Text(
                       'BirthdayBuddy v1.0.0',
                       style: AppTheme.bodySmall(isDark).copyWith(
-                        color: AppTheme.getTextTertiaryColor(isDark),
+                        color: AppTheme.onSurfaceDisabled(isDark),
                       ),
                     ),
                     const SizedBox(height: AppTheme.spacingSM),
@@ -283,7 +283,7 @@ class ProfileScreen extends StatelessWidget {
                         Text(
                           '•',
                           style: TextStyle(
-                              color: AppTheme.getTextTertiaryColor(isDark)),
+                              color: AppTheme.onSurfaceDisabled(isDark)),
                         ),
                         TextButton(
                           onPressed: () {},
@@ -379,12 +379,12 @@ class ProfileScreen extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppTheme.getBorderColor(isDark).withValues(alpha: 0.2),
+          color: AppTheme.outline(isDark).withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
         ),
         child: Icon(
           icon,
-          color: AppTheme.getTextSecondaryColor(isDark),
+          color: AppTheme.onSurfaceVariant(isDark),
           size: 20,
         ),
       ),
@@ -398,7 +398,7 @@ class ProfileScreen extends StatelessWidget {
       ),
       trailing: Icon(
         Icons.chevron_right,
-        color: AppTheme.getTextTertiaryColor(isDark),
+        color: AppTheme.onSurfaceDisabled(isDark),
       ),
       onTap: onTap,
     );

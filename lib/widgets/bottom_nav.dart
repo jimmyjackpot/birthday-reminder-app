@@ -7,13 +7,11 @@ enum Tab { home, calendar, statistics, profile }
 class BottomNav extends StatelessWidget {
   final Tab activeTab;
   final Function(Tab) onTabChange;
-  final VoidCallback onAddClick;
 
   const BottomNav({
     super.key,
     required this.activeTab,
     required this.onTabChange,
-    required this.onAddClick,
   });
 
   @override
@@ -21,15 +19,15 @@ class BottomNav extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.getSurfaceColor(isDark),
+        color: AppTheme.surface(isDark),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
-        boxShadow: AppTheme.elevatedShadow,
+        boxShadow: AppTheme.elevatedShadow(isDark),
         border: Border(
           top: BorderSide(
-            color: AppTheme.getBorderColor(isDark).withValues(alpha: 0.1),
+            color: AppTheme.outline(isDark).withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -63,43 +61,7 @@ class BottomNav extends StatelessWidget {
                   Tab.calendar,
                 ),
               ),
-              // Center: Add Button (FAB) - Highlighted with blue background
-              Semantics(
-                label: 'Add new birthday',
-                button: true,
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        HapticFeedback.mediumImpact();
-                        onAddClick();
-                      },
-                      borderRadius: BorderRadius.circular(28),
-                      child: const Icon(
-                        Icons.add_circle_outline,
-                        color: Colors.white,
-                        size: 28,
-                        semanticLabel: 'Add new birthday',
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Item 4: Statistics
+              // Item 3: Statistics
               Expanded(
                 child: _buildNavItem(
                   context,
@@ -124,7 +86,8 @@ class BottomNav extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(BuildContext context, IconData icon, String label, Tab tab) {
+  Widget _buildNavItem(
+      BuildContext context, IconData icon, String label, Tab tab) {
     final isActive = activeTab == tab;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Semantics(
@@ -145,18 +108,22 @@ class BottomNav extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                color: isActive ? AppTheme.primaryColor : AppTheme.textTertiary,
+                color: isActive
+                    ? AppTheme.primaryColor
+                    : AppTheme.onSurfaceDisabled(isDark),
                 size: 24,
                 semanticLabel: label,
               ),
               const SizedBox(height: AppTheme.spacingXS),
-            Text(
-              label,
-              style: AppTheme.labelMedium(isDark).copyWith(
-                color: isActive ? AppTheme.primaryColor : (isDark ? AppTheme.textTertiaryDark : AppTheme.textTertiary),
-                fontSize: 11,
+              Text(
+                label,
+                style: AppTheme.labelMedium(isDark).copyWith(
+                  color: isActive
+                      ? AppTheme.primaryColor
+                      : AppTheme.onSurfaceDisabled(isDark),
+                  fontSize: 11,
+                ),
               ),
-            ),
             ],
           ),
         ),

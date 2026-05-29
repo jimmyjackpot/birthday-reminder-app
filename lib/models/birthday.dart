@@ -1,3 +1,8 @@
+enum EventType {
+  birthday,
+  anniversary,
+}
+
 class Birthday {
   final String id;
   final String name;
@@ -8,6 +13,7 @@ class Birthday {
   final bool reminderEnabled;
   final int reminderDays;
   final String? contactId; // ID of linked contact
+  final EventType eventType; // birthday or anniversary
 
   Birthday({
     required this.id,
@@ -19,6 +25,7 @@ class Birthday {
     required this.reminderEnabled,
     required this.reminderDays,
     this.contactId,
+    this.eventType = EventType.birthday,
   });
 
   // Calculate days until next birthday
@@ -29,13 +36,13 @@ class Birthday {
       birthdate.month,
       birthdate.day,
     );
-    
+
     if (nextBirthday.isBefore(today) || nextBirthday.isAtSameMomentAs(today)) {
       return DateTime(today.year + 1, birthdate.month, birthdate.day)
           .difference(today)
           .inDays;
     }
-    
+
     return nextBirthday.difference(today).inDays;
   }
 
@@ -62,6 +69,12 @@ class Birthday {
       reminderEnabled: json['reminderEnabled'] as bool,
       reminderDays: json['reminderDays'] as int,
       contactId: json['contactId'] as String?,
+      eventType: json['eventType'] != null
+          ? EventType.values.firstWhere(
+              (e) => e.toString() == json['eventType'],
+              orElse: () => EventType.birthday,
+            )
+          : EventType.birthday,
     );
   }
 
@@ -77,6 +90,7 @@ class Birthday {
       'reminderEnabled': reminderEnabled,
       'reminderDays': reminderDays,
       'contactId': contactId,
+      'eventType': eventType.toString(),
     };
   }
 
@@ -91,6 +105,7 @@ class Birthday {
     bool? reminderEnabled,
     int? reminderDays,
     String? contactId,
+    EventType? eventType,
   }) {
     return Birthday(
       id: id ?? this.id,
@@ -102,7 +117,24 @@ class Birthday {
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
       reminderDays: reminderDays ?? this.reminderDays,
       contactId: contactId ?? this.contactId,
+      eventType: eventType ?? this.eventType,
     );
   }
-}
 
+  // Get display title based on event type
+  String getDisplayTitle() {
+    switch (eventType) {
+      case EventType.anniversary:
+        return 'Wedding Anniversary';
+      case EventType.birthday:
+        return name;
+    }
+  }
+
+  // Get reminder count (simplified - can be enhanced)
+  int getReminderCount() {
+    if (!reminderEnabled) return 0;
+    // Count reminders: one for the day before (if reminderDays > 0) and one for the day of
+    return reminderDays > 0 ? 2 : 1;
+  }
+}

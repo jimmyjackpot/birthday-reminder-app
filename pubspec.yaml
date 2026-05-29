@@ -20,6 +20,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   cached_network_image: ^3.3.0
   google_fonts: ^6.1.0
+  phosphor_flutter: ^2.0.0
   
   # Date & Time
   table_calendar: ^3.0.9

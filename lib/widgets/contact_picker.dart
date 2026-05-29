@@ -95,7 +95,7 @@ class _ContactPickerState extends State<ContactPicker> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Dialog(
-      backgroundColor: AppTheme.getSurfaceColor(isDark),
+      backgroundColor: AppTheme.surface(isDark),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
       ),
@@ -117,7 +117,7 @@ class _ContactPickerState extends State<ContactPicker> {
                 IconButton(
                   icon: Icon(
                     Icons.close,
-                    color: AppTheme.getTextPrimaryColor(isDark),
+                    color: AppTheme.onSurface(isDark),
                   ),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -129,14 +129,14 @@ class _ContactPickerState extends State<ContactPicker> {
               decoration: InputDecoration(
                 hintText: 'Search contacts...',
                 hintStyle: AppTheme.bodyMedium(isDark).copyWith(
-                  color: AppTheme.getTextTertiaryColor(isDark),
+                  color: AppTheme.onSurfaceDisabled(isDark),
                 ),
                 prefixIcon: Icon(
                   Icons.search,
-                  color: AppTheme.getTextSecondaryColor(isDark),
+                  color: AppTheme.onSurfaceVariant(isDark),
                 ),
                 filled: true,
-                fillColor: AppTheme.getBackgroundColor(isDark),
+                fillColor: AppTheme.surfaceContainer(isDark),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   borderSide: BorderSide.none,
@@ -166,13 +166,13 @@ class _ContactPickerState extends State<ContactPicker> {
                               Icon(
                                 Icons.contacts_outlined,
                                 size: 64,
-                                color: AppTheme.getTextTertiaryColor(isDark),
+                                color: AppTheme.onSurfaceDisabled(isDark),
                               ),
                               const SizedBox(height: AppTheme.spacingMD),
                               Text(
                                 'No contacts found',
                                 style: AppTheme.bodyMedium(isDark).copyWith(
-                                  color: AppTheme.getTextSecondaryColor(isDark),
+                                  color: AppTheme.onSurfaceVariant(isDark),
                                 ),
                               ),
                             ],
@@ -201,16 +201,15 @@ class _ContactPickerState extends State<ContactPicker> {
                                     Icon(
                                       Icons.search_off,
                                       size: 64,
-                                      color:
-                                          AppTheme.getTextTertiaryColor(isDark),
+                                      color: AppTheme.onSurfaceDisabled(isDark),
                                     ),
                                     const SizedBox(height: AppTheme.spacingMD),
                                     Text(
                                       'No contacts match your search',
                                       style:
                                           AppTheme.bodyMedium(isDark).copyWith(
-                                        color: AppTheme.getTextSecondaryColor(
-                                            isDark),
+                                        color:
+                                            AppTheme.onSurfaceVariant(isDark),
                                       ),
                                     ),
                                   ],
@@ -227,8 +226,7 @@ class _ContactPickerState extends State<ContactPicker> {
                                   return ListTile(
                                     leading: Icon(
                                       Icons.person_off,
-                                      color: AppTheme.getTextSecondaryColor(
-                                          isDark),
+                                      color: AppTheme.onSurfaceVariant(isDark),
                                     ),
                                     title: Text(
                                       'No Contact',

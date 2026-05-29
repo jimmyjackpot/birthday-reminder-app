@@ -53,11 +53,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Consumer<BirthdayProvider>(
       builder: (context, provider, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
-        
+
         // Show loading state
         if (provider.isLoading) {
           return Scaffold(
-            backgroundColor: AppTheme.getBackgroundColor(isDark),
+            backgroundColor: AppTheme.surfaceContainer(isDark),
             body: SafeArea(
               child: ListView.builder(
                 padding: const EdgeInsets.all(AppTheme.spacingMD),
@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Show error state
         if (provider.error != null && provider.birthdays.isEmpty) {
           return Scaffold(
-            backgroundColor: AppTheme.getBackgroundColor(isDark),
+            backgroundColor: AppTheme.surfaceContainer(isDark),
             body: SafeArea(
               child: ErrorDisplay(
                 title: 'Failed to Load Birthdays',
@@ -85,121 +85,122 @@ class _HomeScreenState extends State<HomeScreen> {
         final birthdays = _debouncedSearchQuery.isEmpty
             ? provider.getUpcomingBirthdays()
             : provider.searchBirthdays(_debouncedSearchQuery);
-        
+
         return Scaffold(
-          backgroundColor: AppTheme.getBackgroundColor(isDark),
+          backgroundColor: AppTheme.surfaceContainer(isDark),
           body: SafeArea(
             child: Column(
               children: [
                 // Header
                 Container(
                   padding: const EdgeInsets.all(AppTheme.spacingMD),
-                decoration: BoxDecoration(
-                  color: AppTheme.getSurfaceColor(isDark),
-                  boxShadow: AppTheme.cardShadow,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        'Upcoming Birthdays',
-                        style: AppTheme.heading2(isDark),
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingMD),
-                    // Search Bar
-                    TextField(
-                      onChanged: _onSearchChanged,
-                      decoration: InputDecoration(
-                        hintText: 'Search birthdays...',
-                        hintStyle: AppTheme.bodyMedium(isDark).copyWith(
-                          color: isDark ? AppTheme.textTertiaryDark : AppTheme.textTertiary,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.search_rounded,
-                          color: AppTheme.getTextTertiaryColor(isDark),
-                        ),
-                        filled: true,
-                        fillColor: AppTheme.getBackgroundColor(isDark),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: AppTheme.spacingMD,
-                          vertical: AppTheme.spacingMD,
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface(isDark),
+                    boxShadow: AppTheme.cardShadow(isDark),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          'Upcoming Birthdays',
+                          style: AppTheme.heading2(isDark),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingSM),
-                    // View Toggle
-                    Container(
-                      padding: const EdgeInsets.all(AppTheme.spacingXS),
-                      decoration: BoxDecoration(
-                        color: AppTheme.getBackgroundColor(isDark),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _buildToggleButton(
-                              'List',
-                              Icons.view_list_rounded,
-                              _isListView,
-                              () => setState(() => _isListView = true),
-                            ),
+                      const SizedBox(height: AppTheme.spacingMD),
+                      // Search Bar
+                      TextField(
+                        onChanged: _onSearchChanged,
+                        decoration: InputDecoration(
+                          hintText: 'Search birthdays...',
+                          hintStyle: AppTheme.bodyMedium(isDark).copyWith(
+                            color: AppTheme.onSurfaceDisabled(isDark),
                           ),
-                          Expanded(
-                            child: _buildToggleButton(
-                              'Calendar',
-                              Icons.calendar_today_rounded,
-                              !_isListView,
-                              () => setState(() => _isListView = false),
-                            ),
+                          prefixIcon: Icon(
+                            Icons.search_rounded,
+                            color: AppTheme.onSurfaceDisabled(isDark),
                           ),
-                        ],
+                          filled: true,
+                          fillColor: AppTheme.surfaceContainer(isDark),
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMedium),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.spacingMD,
+                            vertical: AppTheme.spacingMD,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              // Content
-              Expanded(
-                child: _isListView
-                    ? RefreshIndicator(
-                        onRefresh: () async {
-                          await provider.retryLoad();
-                        },
-                        child: _buildListView(birthdays, provider),
-                      )
-                    : CalendarViewScreen(
-                        birthdays: birthdays,
-                        onBirthdayTap: (birthday) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BirthdayDetailScreen(
-                                birthday: birthday,
+                      const SizedBox(height: AppTheme.spacingSM),
+                      // View Toggle
+                      Container(
+                        padding: const EdgeInsets.all(AppTheme.spacingXS),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceContainer(isDark),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMedium),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildToggleButton(
+                                'List',
+                                Icons.view_list_rounded,
+                                _isListView,
+                                () => setState(() => _isListView = true),
                               ),
                             ),
-                          );
-                        },
+                            Expanded(
+                              child: _buildToggleButton(
+                                'Calendar',
+                                Icons.calendar_today_rounded,
+                                !_isListView,
+                                () => setState(() => _isListView = false),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-              ),
-            ],
+                    ],
+                  ),
+                ),
+                // Content
+                Expanded(
+                  child: _isListView
+                      ? RefreshIndicator(
+                          onRefresh: () async {
+                            await provider.retryLoad();
+                          },
+                          child: _buildListView(birthdays, provider),
+                        )
+                      : CalendarViewScreen(
+                          birthdays: birthdays,
+                          onBirthdayTap: (birthday) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BirthdayDetailScreen(
+                                  birthday: birthday,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
             ),
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: widget.onAddBirthday,
             backgroundColor: AppTheme.primaryColor,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-            ),
-            child: const Icon(Icons.add_rounded, color: Colors.white),
+            elevation: 4,
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add, color: Colors.white, size: 28),
           ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         );
       },
     );
@@ -218,23 +219,32 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingSM + 2),
         decoration: BoxDecoration(
-          color: isActive ? AppTheme.getSurfaceColor(isDark) : Colors.transparent,
+          color: isActive ? AppTheme.surface(isDark) : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-          boxShadow: isActive ? AppTheme.cardShadow : null,
+          boxShadow: isActive ? AppTheme.cardShadow(isDark) : null,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               size: 18,
-              color: isActive ? AppTheme.primaryColor : AppTheme.textTertiary,
+              color: isActive
+                  ? AppTheme.primaryColor
+                  : AppTheme.onSurfaceDisabled(isDark),
             ),
             const SizedBox(width: AppTheme.spacingSM),
-            Text(
-              label,
-              style: AppTheme.labelMedium(isDark).copyWith(
-                color: isActive ? AppTheme.primaryColor : (isDark ? AppTheme.textTertiaryDark : AppTheme.textTertiary),
+            Flexible(
+              child: Text(
+                label,
+                style: AppTheme.labelMedium(isDark).copyWith(
+                  color: isActive
+                      ? AppTheme.primaryColor
+                      : AppTheme.onSurfaceDisabled(isDark),
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ],
@@ -246,12 +256,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildListView(List<Birthday> birthdays, BirthdayProvider provider) {
     if (birthdays.isEmpty) {
       return EmptyState(
-        icon: _searchQuery.isEmpty 
-            ? Icons.cake_outlined 
+        icon: _searchQuery.isEmpty
+            ? Icons.cake_outlined
             : Icons.search_off_outlined,
-        title: _searchQuery.isEmpty
-            ? 'No Birthdays Yet'
-            : 'No Results Found',
+        title: _searchQuery.isEmpty ? 'No Birthdays Yet' : 'No Results Found',
         message: _searchQuery.isEmpty
             ? 'Start by adding your first birthday to get reminders and never miss a special day!'
             : 'Try adjusting your search terms or add a new birthday.',
@@ -268,40 +276,41 @@ class _HomeScreenState extends State<HomeScreen> {
         return AppAnimations.fadeIn(
           duration: Duration(milliseconds: 300 + (index * 50)),
           child: BirthdayCard(
-          birthday: birthday,
-          onTap: () {
-            Navigator.push(
-              context,
-              AppAnimations.slideRoute(
-                BirthdayDetailScreen(birthday: birthday),
-              ),
-            );
-          },
-          onEdit: () {
-            Navigator.push(
-              context,
-              AppAnimations.slideRoute(
-                BirthdayFormScreen(birthday: birthday),
-              ),
-            );
-          },
-          onDelete: () {
-            _showDeleteDialog(context, provider, birthday);
-          },
-          onWish: () {
-            showDialog(
-              context: context,
-              builder: (context) => WishDialog(birthday: birthday),
-            );
-          },
-          onShare: () {
-            AnalyticsService().logBirthdayShared();
-            final message = '${birthday.name}\'s birthday is on ${_getMonthName(birthday.birthdate.month)} ${birthday.birthdate.day}! 🎉\n\n${birthday.daysUntil == 0 ? "Today is their birthday!" : birthday.daysUntil == 1 ? "Tomorrow!" : "In ${birthday.daysUntil} days!"}';
-            Share.share(
-              message,
-              subject: '${birthday.name}\'s Birthday',
-            );
-          },
+            birthday: birthday,
+            onTap: () {
+              Navigator.push(
+                context,
+                AppAnimations.slideRoute(
+                  BirthdayDetailScreen(birthday: birthday),
+                ),
+              );
+            },
+            onEdit: () {
+              Navigator.push(
+                context,
+                AppAnimations.slideRoute(
+                  BirthdayFormScreen(birthday: birthday),
+                ),
+              );
+            },
+            onDelete: () {
+              _showDeleteDialog(context, provider, birthday);
+            },
+            onWish: () {
+              showDialog(
+                context: context,
+                builder: (context) => WishDialog(birthday: birthday),
+              );
+            },
+            onShare: () {
+              AnalyticsService().logBirthdayShared();
+              final message =
+                  '${birthday.name}\'s birthday is on ${_getMonthName(birthday.birthdate.month)} ${birthday.birthdate.day}! 🎉\n\n${birthday.daysUntil == 0 ? "Today is their birthday!" : birthday.daysUntil == 1 ? "Tomorrow!" : "In ${birthday.daysUntil} days!"}';
+              Share.share(
+                message,
+                subject: '${birthday.name}\'s Birthday',
+              );
+            },
           ),
         );
       },
@@ -337,7 +346,8 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             child: Text(
               'Delete',
-              style: AppTheme.labelLarge(isDark).copyWith(color: AppTheme.errorColor),
+              style: AppTheme.labelLarge(isDark)
+                  .copyWith(color: AppTheme.errorColor),
             ),
           ),
         ],
@@ -347,8 +357,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _getMonthName(int month) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return months[month - 1];
   }
